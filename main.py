@@ -37,8 +37,8 @@ def main():
         for i in range(1,3):
             (dataX, dataY) = loadDataSet(i)
             detector.fit(x = dataX, y = dataY, verbose = 1, validation_split=0.1, epochs=500, batch_size=64)
-            print(dataY[0:1,:])
-            x_hat = detector.predict(x = dataX[0:1, :, :, :])
+            print(dataY[0:10,:])
+            x_hat = detector.predict(x = dataX[0:10, :, :, :])
             print(x_hat);
             h = detector.evaluate(verbose=1, x = dataX, y = dataY, )
                 
