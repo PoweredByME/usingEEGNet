@@ -1,6 +1,7 @@
 from scipy.io import loadmat
 import numpy as np
-from EEGModels import EEGNet_SSVEP;
+from EEGModels import EEGNet_SSVEP
+import keras
 
 def loadDataSet(subject_no):
     dataset = loadmat('DataSet/data/s' + str(subject_no) + '.mat')
@@ -18,16 +19,45 @@ def loadDataSet(subject_no):
             eeg = np.pad(eeg, ((0,0),(0, 1280 - 1114 + 39)), 'constant')
             for k in range(4):
                 dataX.append(np.reshape(eeg[:, k * 256: (k + 1) * 256], (1,8,256)))
-                targetVec = np.zeros((len(tragetFreqs)))
-                targetVec[i] = 1.0
-                dataY.append(targetVec)
+                dataY.append(i);
     
     dataX = np.asarray(dataX)
     dataY = np.asarray(dataY)
+
+    dataY = keras.utils.to_categorical(dataY);
+    dataX = keras.utils.normalize(dataX)
     
     return (dataX, dataY)
             
 
+def main():
+    detector = EEGNet_SSVEP();
+    detector.compile(loss = 'categorical_crossentropy', optimizer = 'adam', metrics=['acc', 'mae', 'mse'])
+    (dataX, dataY) = loadDataSet(1);
+
+    dataX = dataX[0:1, :, :, :];
+    dataY = dataY[110:120, :];
+    
+    
+    print dataX;
+    return;
+
+    for i in range(10):
+        y_predicted = detector.predict(x = dataX);
+        print(str(i) + ". Before Fitting -> y = " + str(y_predicted));
+        detector.fit(x = dataX, y = dataY, verbose = 1, epochs = 100, validation_split=0.0);
+        y_predicted = detector.predict(x = dataX);
+        print(str(i) + ". After Fitting -> y = " + str(y_predicted));
+        print("#" * 20);        
+
+
+if __name__ == "__main__":
+    main()
+
+
+
+
+'''
 def main():
     detector = EEGNet_SSVEP()
     try:
@@ -36,7 +66,7 @@ def main():
             
         for i in range(1,3):
             (dataX, dataY) = loadDataSet(i)
-            detector.fit(x = dataX, y = dataY, verbose = 1, validation_split=0.1, epochs=500, batch_size=64)
+            detector.fit(x = dataX[0:1,:,:,:], y = dataY[0:1,:,:], verbose = 1, validation_split=0.1, epochs=5)
             print(dataY[0:10,:])
             x_hat = detector.predict(x = dataX[0:10, :, :, :])
             print(x_hat);
@@ -49,7 +79,4 @@ def main():
         print("Error")
     finally:
         detector.save_weights("weights.h5")
-
-
-if __name__ == "__main__":
-    main()
+'''
